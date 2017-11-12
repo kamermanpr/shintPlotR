@@ -1,1 +1,1 @@
-# shintPlotR
+# shinyPlotR
