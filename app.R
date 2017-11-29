@@ -17,31 +17,31 @@ ui <- fluidPage(
    # Application title
    titlePanel("ShinyPlotR"),
    
-   # Sidebar with a slider input for number of bins 
+   # Sidebar that changes depending on which tab is selected
    sidebarLayout(
       sidebarPanel(
-          conditionalPanel(condition = "input.tabs1 == 'About'",
-                           h4("Testing")
-                           ),
-      
-          
-         sliderInput("bins",
+          conditionalPanel(condition="input.tabSelected==1",h5("This is Tab 1")),
+          conditionalPanel(condition = "input.tabSelected==2",h5("This is Tab 2")),
+          conditionalPanel(condition = "input.tabSelected==3",h5("This is Tab 3"), sliderInput("bins",
                      "Number of bins:",
                      min = 1,
                      max = 50,
-                     value = 30)
+                     value = 30))
       ),
       
-      # Show a plot of the generated distribution
+      # Show relevant ouput for each tab
       mainPanel(
           tabsetPanel(type = "tab",
-                      tabPanel("About"),
-                      tabPanel("Data Upload"),
-                      tabPanel("Data Visualization", plotOutput("distPlot"))
+                      
+                      tabPanel("About", value=1, conditionalPanel(condition = "input.choice==1")),
+                      tabPanel("Data Upload", value=2, conditionalPanel(condition = "input.choice==2")),
+                      tabPanel("Data Visualization",value=3, conditionalPanel(condition = "input.choice==3"), plotOutput("distPlot")),
+                      id = "tabSelected"
           )
       )
    )
 )
+
 
 ############################################################
 #                                                          #
