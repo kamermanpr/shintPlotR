@@ -15,11 +15,16 @@ library(shiny)
 ui <- fluidPage(
    
    # Application title
-   titlePanel("Old Faithful Geyser Data"),
+   titlePanel("ShinyPlotR"),
    
    # Sidebar with a slider input for number of bins 
    sidebarLayout(
       sidebarPanel(
+          conditionalPanel(condition = "input.tabs1 == 'About'",
+                           h4("Testing")
+                           ),
+      
+          
          sliderInput("bins",
                      "Number of bins:",
                      min = 1,
@@ -29,7 +34,11 @@ ui <- fluidPage(
       
       # Show a plot of the generated distribution
       mainPanel(
-         plotOutput("distPlot")
+          tabsetPanel(type = "tab",
+                      tabPanel("About"),
+                      tabPanel("Data Upload"),
+                      tabPanel("Data Visualization", plotOutput("distPlot"))
+          )
       )
    )
 )
