@@ -20,13 +20,13 @@ ui <- fluidPage(
    # Sidebar that changes depending on which tab is selected
    sidebarLayout(
       sidebarPanel(
-          conditionalPanel(condition="input.tabSelected==1",h5("This is Tab 1")),
-          conditionalPanel(condition = "input.tabSelected==2",h5("This is Tab 2"),
+          conditionalPanel(condition="input.tabSelected==1",h5("Insert Text Here")),
+          conditionalPanel(condition = "input.tabSelected==2",
                            fileInput("file", "Upload file"),
                            h5("Max file size is 5MB"),
                            radioButtons("sep","Separator", choices = c(Comma = ',', Period = ".", Tilde = "~", Minus = "-")),
-                           checkboxInput("header","Header?")),
-          conditionalPanel(condition = "input.tabSelected==3",h5("This is Tab 3"), sliderInput("bins",
+                           checkboxInput("header","Initial Header Line")),
+          conditionalPanel(condition = "input.tabSelected==3", sliderInput("bins",
                      "Number of bins:",
                      min = 1,
                      max = 50,
