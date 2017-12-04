@@ -5,6 +5,7 @@
 ############################################################
 # Load packages
 library(shiny)
+library(tidyverse)
 
 ############################################################
 #                                                          #
@@ -24,8 +25,7 @@ ui <- fluidPage(
           conditionalPanel(condition = "input.tabSelected==2",
                            fileInput("file", "Upload file"),
                            h5("Max file size is 5MB"),
-                           radioButtons("sep","Separator", choices = c(Comma = ',', Period = ".", Tilde = "~", Minus = "-")),
-                           checkboxInput("header","Initial Header Line")),
+                           radioButtons("sep","Separator", choices = c(Comma = ',', Period = ".", Tilde = "~", Minus = "-"))),
           conditionalPanel(condition = "input.tabSelected==3", sliderInput("bins",
                      "Number of bins:",
                      min = 1,
@@ -80,12 +80,13 @@ server <- function(input, output) {
    #Function to read in a data file and display in data file
    output$inputFile <- renderTable({
        
-       file.to.read = input$file
-       if (is.null(file.to.read)){
+       file_to_read = input$file
+       if (is.null(file_to_read)){
            return()
        }
        
-       read.table(file.to.read$datapath, sep = input$sep, header = input$header)
+       read_delim(file_to_read$datapath, input$sep)
+       #read.table(file.to.read$datapath, sep = input$sep, header = input$header)
        
    })
 }
