@@ -89,17 +89,21 @@ server <- function(input, output) {
       hist(x, breaks = bins, col = 'darkgray', border = 'white')
    })
    
+   ################
+   #  UPLOAD TAB  #
+   ################
+   
    # Generate reactive dataframe object
    df <- reactive({
        if(is.null(input$file)) {
            return()
-           } else {
-               readr::read_delim(file = input$file$datapath, 
-                                 delim = input$sep)
-               }
-       })
-    
-    # Waiting message
+       } else {
+           readr::read_delim(file = input$file$datapath, 
+                             delim = input$sep)
+       }
+   })
+   
+   # Waiting message
    output$waiting <- renderPrint({
        if(!is.null(df())) {
            tags$p("")
