@@ -57,6 +57,7 @@ ui <- fluidPage(
                                     mi ligula fermentum velit, sit amet lacinia arcu mi at risus. Nam vitae tristique nibh.")),
                       tabPanel("Data Upload", value=2,
                                conditionalPanel(condition = "input.choice==2"),
+                               verbatimTextOutput("dimensions"),
                                tableOutput("inputFile")),
                       tabPanel("Data Visualization",value=3, 
                                conditionalPanel(condition = "input.choice==3"), 
@@ -101,6 +102,11 @@ server <- function(input, output) {
       head(df(),  n = input$rows)
    })
    
+   output$dimensions <- renderText({
+      rows <- paste("Rows:    ", dim(df())[1])
+      columns <- paste("Columns: ", dim(df())[2])
+      paste(rows, columns, sep = "\n")
+   })
    
    
    
