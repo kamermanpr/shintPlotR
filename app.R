@@ -5,7 +5,6 @@
 ############################################################
 # Load packages
 library(shiny)
-library(tidyverse)
 
 ############################################################
 #                                                          #
@@ -22,14 +21,16 @@ ui <- fluidPage(
    sidebarLayout(
       sidebarPanel(
           conditionalPanel(condition="input.tabSelected==1",h5("Insert Text Here")),
+          
           conditionalPanel(condition = "input.tabSelected==2",
                            fileInput("file", "Upload file"),
-                           h5("Max file size is 5MB"),
-                           radioButtons("sep","Separator", choices = c(Comma = ',', Period = ".", Tilde = "~", Minus = "-")),
-                           numericInput(inputId = "rows",
-                                        label = "Number of rows to view:",
-                                        min = 0,
-                                        value = 10)),
+                           radioButtons("sep","Delimited file data separator", 
+                                        choices = c(Comma = ",", 
+                                                    Semicolon = ";", 
+                                                    Tab = "/t", 
+                                                    `Blank space` = " ")),
+                           em("(Max file size is 5MB)")),
+          
           conditionalPanel(condition = "input.tabSelected==3", sliderInput("bins",
                      "Number of bins:",
                      min = 1,
@@ -40,25 +41,27 @@ ui <- fluidPage(
       # Show relevant ouput for each tab
       mainPanel(
           tabsetPanel(type = "tab",
-                      
                       tabPanel("About", value=1, conditionalPanel(condition = "input.choice==1"),
-                               
-                                p("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce maximus orci vitae erat commodo tincidunt. 
+p("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce maximus orci vitae erat commodo tincidunt. 
                                Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Quisque lobortis, 
                                metus sit amet volutpat mollis, velit ex lobortis ligula, non hendrerit risus nulla eu risus. Praesent et ultrices orci,
                                et molestie sem. Suspendisse elementum mauris eleifend dolor vestibulum interdum. Aenean mauris odio, efficitur in libero in,
                                aliquam venenatis metus. Nunc at accumsan metus. Donec non dui vitae nulla sodales lobortis at sit amet quam. 
                                Duis pellentesque odio a porta posuere."),
-                                p("Quisque urna libero, dapibus sed nibh pretium, congue vestibulum urna. Aliquam elementum nisl quis nibh porta varius.
+p("Quisque urna libero, dapibus sed nibh pretium, congue vestibulum urna. Aliquam elementum nisl quis nibh porta varius.
                                Etiam malesuada, arcu nec iaculis sollicitudin, lacus purus aliquet ipsum, sit amet dapibus arcu mi vitae turpis.
                                Nam ut est quis neque porta aliquam ut eget augue. Nulla ut semper dui. Donec luctus lectus ut risus consequat,
                                pharetra lobortis risus efficitur. Aliquam vitae ipsum malesuada, rhoncus sem et, pellentesque erat. 
                                Duis sed sem vel odio fringilla eleifend ut sit amet ex. Fusce eleifend, odio eu faucibus iaculis, 
                                     mi ligula fermentum velit, sit amet lacinia arcu mi at risus. Nam vitae tristique nibh.")),
+                      
                       tabPanel("Data Upload", value=2,
                                conditionalPanel(condition = "input.choice==2"),
+                               h2('Summary of uploaded data'),
+                               htmlOutput("waiting"),
                                verbatimTextOutput("dimensions"),
-                               tableOutput("inputFile")),
+                               verbatimTextOutput("tibble_head")),
+                      
                       tabPanel("Data Visualization",value=3, 
                                conditionalPanel(condition = "input.choice==3"), 
                                plotOutput("distPlot")),
@@ -86,31 +89,42 @@ server <- function(input, output) {
       hist(x, breaks = bins, col = 'darkgray', border = 'white')
    })
    
+   # Generate reactive dataframe object
    df <- reactive({
-       file_to_read = input$file
-       if (is.null(file_to_read)){
+       if(is.null(input$file)) {
            return()
-       } else {
-           read_delim(file_to_read$datapath, input$sep)
-       }
-       
-       
-   })
-
-   
-   output$inputFile <- renderTable({
-      head(df(),  n = input$rows)
-   })
-   
+           } else {
+               readr::read_delim(file = input$file$datapath, 
+                                 delim = input$sep)
+               }
+       })
+    
+    # Waiting message
+   output$waiting <- renderPrint({
+       if(!is.null(df())) {
+           tags$p("")
+           } else {
+               tags$p("Waiting for data to be uploaded.")
+           }
+       })
+    
+   # Render data frame dimensions
    output$dimensions <- renderText({
-      rows <- paste("Rows:    ", dim(df())[1])
-      columns <- paste("Columns: ", dim(df())[2])
-      paste(rows, columns, sep = "\n")
-   })
-   
-   
-   
-}
+       if(!is.null(df())) {
+           rows <- paste("Rows:", "\t\t", dim(df())[1])
+           columns <- paste("Columns:", "\t", dim(df())[2])
+           paste(rows, columns,
+                 sep = "\n")
+           }
+       })
+    
+   # Render data frame head
+   output$tibble_head <- renderPrint({
+       if(!is.null(df())) {
+           df()
+           }
+       })
+   }
 
 ############################################################
 #                                                          #
