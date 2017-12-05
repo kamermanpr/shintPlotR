@@ -25,7 +25,11 @@ ui <- fluidPage(
           conditionalPanel(condition = "input.tabSelected==2",
                            fileInput("file", "Upload file"),
                            h5("Max file size is 5MB"),
-                           radioButtons("sep","Separator", choices = c(Comma = ',', Period = ".", Tilde = "~", Minus = "-"))),
+                           radioButtons("sep","Separator", choices = c(Comma = ',', Period = ".", Tilde = "~", Minus = "-")),
+                           numericInput(inputId = "rows",
+                                        label = "Number of rows to view:",
+                                        min = 0,
+                                        value = 10)),
           conditionalPanel(condition = "input.tabSelected==3", sliderInput("bins",
                      "Number of bins:",
                      min = 1,
@@ -51,8 +55,12 @@ ui <- fluidPage(
                                pharetra lobortis risus efficitur. Aliquam vitae ipsum malesuada, rhoncus sem et, pellentesque erat. 
                                Duis sed sem vel odio fringilla eleifend ut sit amet ex. Fusce eleifend, odio eu faucibus iaculis, 
                                     mi ligula fermentum velit, sit amet lacinia arcu mi at risus. Nam vitae tristique nibh.")),
-                      tabPanel("Data Upload", value=2, conditionalPanel(condition = "input.choice==2"),tableOutput("inputFile")),
-                      tabPanel("Data Visualization",value=3, conditionalPanel(condition = "input.choice==3"), plotOutput("distPlot")),
+                      tabPanel("Data Upload", value=2,
+                               conditionalPanel(condition = "input.choice==2"),
+                               tableOutput("inputFile")),
+                      tabPanel("Data Visualization",value=3, 
+                               conditionalPanel(condition = "input.choice==3"), 
+                               plotOutput("distPlot")),
                       id = "tabSelected"
           )
       )
@@ -77,18 +85,25 @@ server <- function(input, output) {
       hist(x, breaks = bins, col = 'darkgray', border = 'white')
    })
    
-   #Function to read in a data file and display in data file
-   output$inputFile <- renderTable({
-       
+   df <- reactive({
        file_to_read = input$file
        if (is.null(file_to_read)){
            return()
+       } else {
+           read_delim(file_to_read$datapath, input$sep)
        }
        
-       read_delim(file_to_read$datapath, input$sep)
-       #read.table(file.to.read$datapath, sep = input$sep, header = input$header)
        
    })
+
+   
+   output$inputFile <- renderTable({
+      head(df(),  n = input$rows)
+   })
+   
+   
+   
+   
 }
 
 ############################################################
