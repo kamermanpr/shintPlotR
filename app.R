@@ -36,7 +36,12 @@ ui <- fluidPage(
                                         selected = character(0),
                                         choices = c("Scatter Plot" = "scatter", 
                                                     "Histogram" = "histo", 
-                                                    "Box Plot" = "/t" )))
+                                                    "Box Plot" = "/t" )),
+                           uiOutput("xvar"), # vx is coming from renderUI in server.r
+                           br(),
+                           br(),
+                           uiOutput("yvar") # vy is coming from renderUI in server.r
+                           )
       ),
       
       # Show relevant ouput for each tab
@@ -122,6 +127,28 @@ server <- function(input, output) {
            df()
            }
        })
+   
+   ########################
+   #  DATA VISUALISATION  #
+   ########################
+   
+   var <- reactive({
+              "userData" = names(df())
+   })
+   
+   output$xvar <- renderUI({
+       selectInput("xVariable",
+                   "Select X variable",
+                   choices = var())
+   })
+   
+   output$yvar <- renderUI({
+       selectInput("yVariable",
+                   "Select Y variable",
+                   choices = var())
+   })
+   
+   
    }
 
 ############################################################
