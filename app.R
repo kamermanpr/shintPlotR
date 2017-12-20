@@ -7,6 +7,42 @@
 library(shiny)
 library(ggplot2)
 
+
+
+scale_colour_continuous <- function(...) {
+    scale_colour_grey(...,
+                      start = 0.4, end = 1)
+}
+
+scale_fill_continuous <- function(...) {
+    scale_fill_grey(...,
+                    start = 0.4, end = 1)
+}
+
+scale_colour_discrete <- function(...) {
+    scale_colour_grey(...,
+                      start = 0.4, end = 1)
+}
+
+scale_fill_discrete <- function(...) {
+    scale_fill_grey(...,
+                    start = 0.4, end = 1)
+}
+
+# Update theme_linedraw
+theme_academic <- theme_linedraw(base_size = 14) +
+    theme(panel.border = element_blank(),
+          axis.line = element_line(colour = '#000000',
+                                   size = rel(1)),
+          axis.ticks = element_line(colour = '#000000',
+                                    size = rel(1)),
+          panel.grid = element_blank(),
+          legend.title = element_blank())
+
+# Set 'theme_new' as the default
+theme_set(theme_academic)
+
+
 ############################################################
 #                                                          #
 #                         Shiny UI                         #
@@ -39,7 +75,6 @@ ui <- fluidPage(
                                                     "Histogram" = "histo", 
                                                     "Box Plot" = "/t" )),
                            uiOutput("xvar"), # vx is coming from renderUI in server.r
-                           br(),
                            uiOutput("yvar") # vy is coming from renderUI in server.r
                            )
       ),
@@ -138,27 +173,26 @@ server <- function(input, output) {
    
 
    output$xvar <- renderUI({
-
        if (is.null(df())) return(NULL)
        selectInput("x",
                    "x variable:",
                    choices = var())
-       
    })
    
    output$yvar <- renderUI({
-      
-       if (is.null(df)) return(NULL)
+       if (is.null(df())) return(NULL)
        selectInput("y",
                    "y variable:",
                    choices = var())
-       
    })
 
    output$p <- renderPlot  ({
+       if (is.null(df())) return(NULL)
        ggplot(df(),
        aes(x = df()[,input$x], y = df()[,input$y])) + geom_point()
    })
+   
+   
    
    
    }
