@@ -5,6 +5,7 @@
 ############################################################
 # Load packages
 library(shiny)
+library(ggplot2)
 
 ############################################################
 #                                                          #
@@ -16,7 +17,7 @@ ui <- fluidPage(
    
    # Application title
    titlePanel("ShinyPlotR"),
-   
+  
    # Sidebar that changes depending on which tab is selected
    sidebarLayout(
       sidebarPanel(
@@ -38,7 +39,6 @@ ui <- fluidPage(
                                                     "Histogram" = "histo", 
                                                     "Box Plot" = "/t" )),
                            uiOutput("xvar"), # vx is coming from renderUI in server.r
-                           br(),
                            br(),
                            uiOutput("yvar") # vy is coming from renderUI in server.r
                            )
@@ -63,7 +63,7 @@ ui <- fluidPage(
                       
                       tabPanel("Data Visualization",value=3, 
                                conditionalPanel(condition = "input.choice==3"), 
-                               plotOutput("distPlot")),
+                               plotOutput("p")),
                       id = "tabSelected"
           )
       )
@@ -133,19 +133,31 @@ server <- function(input, output) {
    ########################
    
    var <- reactive({
-              "userData" = names(df())
+        "userData" = names(df())
    })
    
+
    output$xvar <- renderUI({
-       selectInput("xVariable",
-                   "Select X variable",
+
+       if (is.null(df())) return(NULL)
+       selectInput("x",
+                   "x variable:",
                    choices = var())
+       
    })
    
    output$yvar <- renderUI({
-       selectInput("yVariable",
-                   "Select Y variable",
+      
+       if (is.null(df)) return(NULL)
+       selectInput("y",
+                   "y variable:",
                    choices = var())
+       
+   })
+
+   output$p <- renderPlot  ({
+       ggplot(df(),
+       aes(x = df()[,input$x], y = df()[,input$y])) + geom_point()
    })
    
    
