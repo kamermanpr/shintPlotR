@@ -74,8 +74,10 @@ ui <- fluidPage(
                                         choices = c("Scatter Plot" = "scatter", 
                                                     "Histogram" = "histo", 
                                                     "Box Plot" = "/t" )),
-                           uiOutput("xvar"), # vx is coming from renderUI in server.r
-                           uiOutput("yvar") # vy is coming from renderUI in server.r
+                           uiOutput("xvar"), 
+                           uiOutput("yvar"),
+                           uiOutput("xLabel"),
+                           uiOutput("yLabel")
                            )
       ),
       
@@ -98,7 +100,7 @@ ui <- fluidPage(
                       
                       tabPanel("Data Visualization",value=3, 
                                conditionalPanel(condition = "input.choice==3"), 
-                               plotOutput("p")),
+                               plotOutput("plot")),
                       id = "tabSelected"
           )
       )
@@ -185,11 +187,27 @@ server <- function(input, output) {
                    "y variable:",
                    choices = var())
    })
-
-   output$p <- renderPlot  ({
+   
+   output$xLabel <- renderUI({
        if (is.null(df())) return(NULL)
-       ggplot(df(),
+       textInput(inputId = "xLab",
+                 label = "X axis label:",
+                 value = input$x)
+   })
+   
+   output$yLabel <- renderUI({
+       if (is.null(df())) return(NULL)
+       textInput(inputId = "yLab",
+                 label = "Y axis label:",
+                 value = input$y)
+   })
+
+   output$plot <- renderPlot  ({
+       if (is.null(df())) return(NULL)
+       p <- ggplot(df(),
        aes(x = df()[,input$x], y = df()[,input$y])) + geom_point()
+       p + labs(x = input$xLab,
+                y = input$yLab)
    })
    
    
