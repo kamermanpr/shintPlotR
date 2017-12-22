@@ -69,15 +69,12 @@ ui <- fluidPage(
                            em("(Max file size is 5MB)")),
           
           conditionalPanel(condition = "input.tabSelected==3",
-                           radioButtons("graphType", "Choose Plotlolo", 
-                                        selected = character(0),
-                                        choices = c("Scatter Plot" = "scatter", 
-                                                    "Histogram" = "histo", 
-                                                    "Box Plot" = "/t" )),
+                           uiOutput("plotType"),
                            uiOutput("xvar"), 
                            uiOutput("yvar"),
                            uiOutput("xLabel"),
                            uiOutput("yLabel")
+                        
                            )
       ),
       
@@ -169,10 +166,28 @@ server <- function(input, output) {
    #  DATA VISUALISATION  #
    ########################
    
+   output$uploadMessage <- renderText({
+       if(is.null(df())){
+           tags$h("pls upload data")
+       } else {
+           return(NULL)
+       }
+       
+   })
+   
+
+   
    var <- reactive({
         "userData" = names(df())
    })
    
+   output$plotType <- renderUI({
+       radioButtons("graphType", "Choose Plotlolo", 
+                    selected = character(0),
+                    choices = c("Scatter Plot" = "scatter", 
+                                "Histogram" = "histo", 
+                                "Box Plot" = "box" ))
+   })
 
    output$xvar <- renderUI({
        if (is.null(df())) return(NULL)
@@ -201,7 +216,7 @@ server <- function(input, output) {
                  label = "Y axis label:",
                  value = input$y)
    })
-
+   
    output$plot <- renderPlot  ({
        if (is.null(df())) return(NULL)
        p <- ggplot(df(),
