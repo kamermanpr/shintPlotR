@@ -5,6 +5,43 @@
 ############################################################
 # Load packages
 library(shiny)
+library(ggplot2)
+
+
+
+scale_colour_continuous <- function(...) {
+    scale_colour_grey(...,
+                      start = 0.4, end = 1)
+}
+
+scale_fill_continuous <- function(...) {
+    scale_fill_grey(...,
+                    start = 0.4, end = 1)
+}
+
+scale_colour_discrete <- function(...) {
+    scale_colour_grey(...,
+                      start = 0.4, end = 1)
+}
+
+scale_fill_discrete <- function(...) {
+    scale_fill_grey(...,
+                    start = 0.4, end = 1)
+}
+
+# Update theme_linedraw
+theme_academic <- theme_linedraw(base_size = 14) +
+    theme(panel.border = element_blank(),
+          axis.line = element_line(colour = '#000000',
+                                   size = rel(1)),
+          axis.ticks = element_line(colour = '#000000',
+                                    size = rel(1)),
+          panel.grid = element_blank(),
+          legend.title = element_blank())
+
+# Set 'theme_new' as the default
+theme_set(theme_academic)
+
 
 ############################################################
 #                                                          #
@@ -16,7 +53,7 @@ ui <- fluidPage(
    
    # Application title
    titlePanel("ShinyPlotR"),
-   
+  
    # Sidebar that changes depending on which tab is selected
    sidebarLayout(
       sidebarPanel(
@@ -31,29 +68,25 @@ ui <- fluidPage(
                                                     `Blank space` = " ")),
                            em("(Max file size is 5MB)")),
           
-          conditionalPanel(condition = "input.tabSelected==3", sliderInput("bins",
-                     "Number of bins:",
-                     min = 1,
-                     max = 50,
-                     value = 30))
+          conditionalPanel(condition = "input.tabSelected==3",
+                           uiOutput("plotType"),
+                           uiOutput("xvar"), 
+                           uiOutput("yvar"),
+                           uiOutput("xLabel"),
+                           uiOutput("yLabel")
+                        
+                           )
       ),
       
       # Show relevant ouput for each tab
       mainPanel(
           tabsetPanel(type = "tab",
                       tabPanel("About", value=1, conditionalPanel(condition = "input.choice==1"),
-p("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce maximus orci vitae erat commodo tincidunt. 
-                               Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Quisque lobortis, 
-                               metus sit amet volutpat mollis, velit ex lobortis ligula, non hendrerit risus nulla eu risus. Praesent et ultrices orci,
-                               et molestie sem. Suspendisse elementum mauris eleifend dolor vestibulum interdum. Aenean mauris odio, efficitur in libero in,
-                               aliquam venenatis metus. Nunc at accumsan metus. Donec non dui vitae nulla sodales lobortis at sit amet quam. 
-                               Duis pellentesque odio a porta posuere."),
-p("Quisque urna libero, dapibus sed nibh pretium, congue vestibulum urna. Aliquam elementum nisl quis nibh porta varius.
+                        p("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce maximus orci vitae erat commodo tincidunt. 
+                               Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Quisque lobortis."),
+                        p("Quisque urna libero, dapibus sed nibh pretium, congue vestibulum urna. Aliquam elementum nisl quis nibh porta varius.
                                Etiam malesuada, arcu nec iaculis sollicitudin, lacus purus aliquet ipsum, sit amet dapibus arcu mi vitae turpis.
-                               Nam ut est quis neque porta aliquam ut eget augue. Nulla ut semper dui. Donec luctus lectus ut risus consequat,
-                               pharetra lobortis risus efficitur. Aliquam vitae ipsum malesuada, rhoncus sem et, pellentesque erat. 
-                               Duis sed sem vel odio fringilla eleifend ut sit amet ex. Fusce eleifend, odio eu faucibus iaculis, 
-                                    mi ligula fermentum velit, sit amet lacinia arcu mi at risus. Nam vitae tristique nibh.")),
+                               Nam ut est quis neque porta aliquam ut eget augue.")),
                       
                       tabPanel("Data Upload", value=2,
                                conditionalPanel(condition = "input.choice==2"),
@@ -64,7 +97,7 @@ p("Quisque urna libero, dapibus sed nibh pretium, congue vestibulum urna. Aliqua
                       
                       tabPanel("Data Visualization",value=3, 
                                conditionalPanel(condition = "input.choice==3"), 
-                               plotOutput("distPlot")),
+                               plotOutput("plot")),
                       id = "tabSelected"
           )
       )
@@ -128,6 +161,73 @@ server <- function(input, output) {
            df()
            }
        })
+   
+   ########################
+   #  DATA VISUALISATION  #
+   ########################
+   
+   output$uploadMessage <- renderText({
+       if(is.null(df())){
+           tags$h("pls upload data")
+       } else {
+           return(NULL)
+       }
+       
+   })
+   
+
+   
+   var <- reactive({
+        "userData" = names(df())
+   })
+   
+   output$plotType <- renderUI({
+       radioButtons("graphType", "Choose Plotlolo", 
+                    selected = character(0),
+                    choices = c("Scatter Plot" = "scatter", 
+                                "Histogram" = "histo", 
+                                "Box Plot" = "box" ))
+   })
+
+   output$xvar <- renderUI({
+       if (is.null(df())) return(NULL)
+       selectInput("x",
+                   "x variable:",
+                   choices = var())
+   })
+   
+   output$yvar <- renderUI({
+       if (is.null(df())) return(NULL)
+       selectInput("y",
+                   "y variable:",
+                   choices = var())
+   })
+   
+   output$xLabel <- renderUI({
+       if (is.null(df())) return(NULL)
+       textInput(inputId = "xLab",
+                 label = "X axis label:",
+                 value = input$x)
+   })
+   
+   output$yLabel <- renderUI({
+       if (is.null(df())) return(NULL)
+       textInput(inputId = "yLab",
+                 label = "Y axis label:",
+                 value = input$y)
+   })
+   
+   output$plot <- renderPlot  ({
+       if (is.null(df())) return(NULL)
+       p <- ggplot(df(),
+       aes(x = df()[,input$x], y = df()[,input$y])) + geom_point()
+       p + labs(x = input$xLab,
+                y = input$yLab)
+   })
+   
+   
+   
+   
    }
 
 ############################################################
