@@ -7,7 +7,11 @@
 library(shiny)
 library(ggplot2)
 
-
+############################################################
+#                                                          #
+#                          ggplot Theme                    #
+#                                                          #
+############################################################
 
 scale_colour_continuous <- function(...) {
     scale_colour_grey(...,
@@ -190,39 +194,52 @@ server <- function(input, output) {
    })
 
    output$xvar <- renderUI({
-       if (is.null(df())) return(NULL)
+       if (is.null(df()) || is.null(input$graphType)) return(NULL)
        selectInput("x",
                    "x variable:",
                    choices = var())
    })
    
    output$yvar <- renderUI({
-       if (is.null(df())) return(NULL)
+       if (is.null(df()) || is.null(input$graphType)) return(NULL)
        selectInput("y",
                    "y variable:",
                    choices = var())
    })
    
    output$xLabel <- renderUI({
-       if (is.null(df())) return(NULL)
+       if (is.null(df()) || is.null(input$graphType)) return(NULL)
        textInput(inputId = "xLab",
                  label = "X axis label:",
                  value = input$x)
    })
    
    output$yLabel <- renderUI({
-       if (is.null(df())) return(NULL)
+       if (is.null(df()) || is.null(input$graphType)) return(NULL)
        textInput(inputId = "yLab",
                  label = "Y axis label:",
                  value = input$y)
    })
    
    output$plot <- renderPlot  ({
-       if (is.null(df())) return(NULL)
-       p <- ggplot(df(),
-       aes(x = df()[,input$x], y = df()[,input$y])) + geom_point()
-       p + labs(x = input$xLab,
-                y = input$yLab)
+       if (is.null(df()) || is.null(input$graphType)) return(NULL)
+       if (input$graphType == "scatter") {
+           p <- ggplot(df(),
+                       aes(x = df()[,input$x], y = df()[,input$y])) + geom_point()
+           p + labs(x = input$xLab,
+                    y = input$yLab)
+       } else if(input$graphType == "histo") {
+           p <- ggplot(df(),
+                       aes(x = df()[,input$x])) + geom_histogram()
+           p + labs(x = input$xLab,
+                    y = "Frequency")
+       } else if (input$graphType == "box") {
+           p <- ggplot(df(),
+                       aes(x = df()[,input$x], y = df()[,input$y])) + geom_boxplot()
+           p + labs(x = input$xLab,
+                    y = input$yLab)
+       }
+       
    })
    
    
