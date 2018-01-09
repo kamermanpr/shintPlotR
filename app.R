@@ -201,7 +201,7 @@ server <- function(input, output) {
    })
    
    output$yvar <- renderUI({
-       if (is.null(df()) || is.null(input$graphType)) return(NULL)
+       if (is.null(df()) || is.null(input$graphType) || input$graphType == "histo") return(NULL)
        selectInput("y",
                    "y variable:",
                    choices = var())
@@ -215,7 +215,7 @@ server <- function(input, output) {
    })
    
    output$yLabel <- renderUI({
-       if (is.null(df()) || is.null(input$graphType)) return(NULL)
+       if (is.null(df()) || is.null(input$graphType) || input$graphType == "histo" ) return(NULL)
        textInput(inputId = "yLab",
                  label = "Y axis label:",
                  value = input$y)
