@@ -194,7 +194,7 @@ server <- function(input, output) {
    })
 
    output$xvar <- renderUI({
-       if (is.null(df()) || is.null(input$graphType)) return(NULL)
+       if (is.null(df()) || is.null(input$graphType) || input$graphType == "box") return(NULL)
        selectInput("x",
                    "x variable:",
                    choices = var())
