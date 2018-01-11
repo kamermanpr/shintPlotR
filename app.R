@@ -76,6 +76,7 @@ ui <- fluidPage(
                            uiOutput("plotType"),
                            uiOutput("xvar"), 
                            uiOutput("yvar"),
+                           uiOutput("boxGrouping"),
                            uiOutput("xLabel"),
                            uiOutput("yLabel")
                         
@@ -186,8 +187,7 @@ server <- function(input, output) {
    })
    
    output$plotType <- renderUI({
-       radioButtons("graphType", "Choose Plotlolo", 
-                    selected = character(0),
+       radioButtons("graphType", "Choose Plot", 
                     choices = c("Scatter Plot" = "scatter", 
                                 "Histogram" = "histo", 
                                 "Box Plot" = "box" ))
@@ -205,6 +205,14 @@ server <- function(input, output) {
        selectInput("y",
                    "y variable:",
                    choices = var())
+   })
+   
+   output$boxGrouping <- renderUI({
+       if (is.null(df()) || input$graphType != "box") return(NULL)
+       selectInput("grouping",
+                   "Grouping:",
+                   choices = var())
+       
    })
    
    output$xLabel <- renderUI({
@@ -234,10 +242,12 @@ server <- function(input, output) {
            p + labs(x = input$xLab,
                     y = "Frequency")
        } else if (input$graphType == "box") {
-           p <- ggplot(df(),
-                       aes(x = df()[,input$x], y = df()[,input$y])) + geom_boxplot()
-           p + labs(x = input$xLab,
-                    y = input$yLab)
+           #temp <- as.factor(df()[,input$grouping])
+           p  <- ggplot(data=df(), aes(x= input$grouping, y=df()[,input$y]))
+           p + geom_boxplot(aes(fill=df()[,input$grouping])) + 
+               ylab(input$yLab) + xlab(input$grouping) #+ ggtitle("Iris Boxplot")
+
+           
        }
        
    })
