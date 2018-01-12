@@ -252,7 +252,7 @@ server <- function(input, output) {
                     y = "Frequency") + ggtitle(input$title)
        } else if (input$graphType == "box") {
            p  <- ggplot(data=df(), aes(x= input$grouping, y=df()[,input$y]))
-           p + geom_boxplot(aes(fill=df()[,input$grouping])) + lll
+           p + geom_boxplot(aes(fill=df()[,input$grouping])) + 
                ylab(input$yLab) + xlab(input$grouping) + ggtitle(input$title)
 
            
@@ -290,7 +290,7 @@ server <- function(input, output) {
                         y = "Frequency") + ggtitle(input$title)
            } else if (input$graphType == "box") {
                p  <- ggplot(data=df(), aes(x= input$grouping, y=df()[,input$y]))
-               p + geom_boxplot(aes(fill=df()[,input$grouping])) + lll
+               p + geom_boxplot(aes(fill=df()[,input$grouping])) + 
                ylab(input$yLab) + xlab(input$grouping) + ggtitle(input$title)
                
                
@@ -299,6 +299,7 @@ server <- function(input, output) {
            ggsave(file, p)
        },
        contentType = "application/pdf" # MIME type of the image
+       
    )
    
    
