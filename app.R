@@ -80,6 +80,7 @@ ui <- fluidPage(
                            uiOutput("xLabel"),
                            uiOutput("yLabel"),
                            uiOutput("plotTitle")
+                           
                         
                            )
       ),
@@ -102,7 +103,8 @@ ui <- fluidPage(
                                verbatimTextOutput("tibble_head")),
                       
                       tabPanel("Data Visualization",value=3, 
-                               conditionalPanel(condition = "input.choice==3"), 
+                               htmlOutput("waitingPlot"),
+                               downloadButton("download_plot_PDF", "Download Plot"),
                                plotOutput("plot")),
                       id = "tabSelected"
           )
@@ -249,9 +251,8 @@ server <- function(input, output) {
            p + labs(x = input$xLab,
                     y = "Frequency") + ggtitle(input$title)
        } else if (input$graphType == "box") {
-           #temp <- as.factor(df()[,input$grouping])
            p  <- ggplot(data=df(), aes(x= input$grouping, y=df()[,input$y]))
-           p + geom_boxplot(aes(fill=df()[,input$grouping])) + 
+           p + geom_boxplot(aes(fill=df()[,input$grouping])) + lll
                ylab(input$yLab) + xlab(input$grouping) + ggtitle(input$title)
 
            
@@ -259,7 +260,49 @@ server <- function(input, output) {
        
    })
    
+   # Waiting message
+   output$waitingPlot <- renderPrint({
+       if(!is.null(df())) {
+           tags$p("")
+       } else {
+           tags$p("Waiting for data to be uploaded.")
+       }
+   })
    
+   ########################
+   #  Download data       #
+   ########################
+   
+   output$download_plot_PDF <- downloadHandler(
+       filename <- function() {
+           paste("Figure_ggplotGUI_", Sys.time(), ".pdf", sep = "")
+       },
+       content <- function(file) {
+           if (input$graphType == "scatter") {
+               p <- ggplot(df(),
+                           aes(x = df()[,input$x], y = df()[,input$y])) + geom_point()
+               p + labs(x = input$xLab,
+                        y = input$yLab) + ggtitle(input$title)
+           } else if(input$graphType == "histo") {
+               p <- ggplot(df(),
+                           aes(x = df()[,input$x])) + geom_histogram()
+               p + labs(x = input$xLab,
+                        y = "Frequency") + ggtitle(input$title)
+           } else if (input$graphType == "box") {
+               p  <- ggplot(data=df(), aes(x= input$grouping, y=df()[,input$y]))
+               p + geom_boxplot(aes(fill=df()[,input$grouping])) + lll
+               ylab(input$yLab) + xlab(input$grouping) + ggtitle(input$title)
+               
+               
+           }
+           
+           ggsave(file, p)
+       },
+       contentType = "application/pdf" # MIME type of the image
+   )
+   
+   
+
    
    
    }
