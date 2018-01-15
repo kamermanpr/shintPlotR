@@ -242,17 +242,19 @@ server <- function(input, output) {
        if (is.null(df()) || is.null(input$graphType)) return(NULL)
        if (input$graphType == "scatter") {
            p <- ggplot(df(),
-                       aes(x = df()[,input$x], y = df()[,input$y])) + geom_point()
+                       aes(x = df()[[input$x]], y = df()[[input$y]])) + geom_point()
            p + labs(x = input$xLab,
                     y = input$yLab) + ggtitle(input$title)
        } else if(input$graphType == "histo") {
            p <- ggplot(df(),
-                       aes(x = df()[,input$x])) + geom_histogram()
+                       aes(x = df()[[input$x]])) + geom_histogram()
            p + labs(x = input$xLab,
                     y = "Frequency") + ggtitle(input$title)
        } else if (input$graphType == "box") {
-           p  <- ggplot(data=df(), aes(x= input$grouping, y=df()[,input$y]))
-           p + geom_boxplot(aes(fill=df()[,input$grouping])) + 
+           p  <- ggplot(data=df(), 
+                        aes(x = factor(df()[[input$grouping]]), 
+                            y = df()[[input$y]])) 
+           p + geom_boxplot(aes(fill = factor(df()[[input$grouping]]))) + 
                ylab(input$yLab) + xlab(input$grouping) + ggtitle(input$title)
 
            
