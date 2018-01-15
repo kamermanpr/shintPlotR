@@ -105,7 +105,7 @@ ui <- fluidPage(
                       tabPanel("Data Visualization",value=3, 
                                htmlOutput("waitingPlot"),
                                downloadButton("download_plot_PDF", "Download Plot"),
-                               plotOutput("plot")),
+                               plotOutput("plot") ),
                       id = "tabSelected"
           )
       )
@@ -219,7 +219,7 @@ server <- function(input, output) {
    })
    
    output$xLabel <- renderUI({
-       if (is.null(df()) || is.null(input$graphType)) return(NULL)
+       if (is.null(df()) || is.null(input$graphType) || input$graphType == "box" ) return(NULL)
        textInput(inputId = "xLab",
                  label = "X axis label:",
                  value = input$x)
@@ -297,8 +297,10 @@ server <- function(input, output) {
            }
            
            ggsave(file, p)
+           
        },
        contentType = "application/pdf" # MIME type of the image
+       
        
    )
    
