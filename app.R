@@ -7,7 +7,11 @@
 library(shiny)
 library(ggplot2)
 
-
+############################################################
+#                                                          #
+#                          ggplot Theme                    #
+#                                                          #
+############################################################
 
 scale_colour_continuous <- function(...) {
     scale_colour_grey(...,
@@ -72,8 +76,11 @@ ui <- fluidPage(
                            uiOutput("plotType"),
                            uiOutput("xvar"), 
                            uiOutput("yvar"),
+                           uiOutput("boxGrouping"),
                            uiOutput("xLabel"),
-                           uiOutput("yLabel")
+                           uiOutput("yLabel"),
+                           uiOutput("plotTitle")
+                           
                         
                            )
       ),
@@ -96,8 +103,9 @@ ui <- fluidPage(
                                verbatimTextOutput("tibble_head")),
                       
                       tabPanel("Data Visualization",value=3, 
-                               conditionalPanel(condition = "input.choice==3"), 
-                               plotOutput("plot")),
+                               htmlOutput("waitingPlot"),
+                               downloadButton("download_plot_PDF", "Download Plot"),
+                               plotOutput("plot") ),
                       id = "tabSelected"
           )
       )
@@ -182,50 +190,122 @@ server <- function(input, output) {
    })
    
    output$plotType <- renderUI({
-       radioButtons("graphType", "Choose Plotlolo", 
-                    selected = character(0),
+       radioButtons("graphType", "Choose Plot", 
                     choices = c("Scatter Plot" = "scatter", 
                                 "Histogram" = "histo", 
                                 "Box Plot" = "box" ))
    })
 
    output$xvar <- renderUI({
-       if (is.null(df())) return(NULL)
+       if (is.null(df()) || is.null(input$graphType) || input$graphType == "box") return(NULL)
        selectInput("x",
                    "x variable:",
                    choices = var())
    })
    
    output$yvar <- renderUI({
-       if (is.null(df())) return(NULL)
+       if (is.null(df()) || is.null(input$graphType) || input$graphType == "histo") return(NULL)
        selectInput("y",
                    "y variable:",
                    choices = var())
    })
    
+   output$boxGrouping <- renderUI({
+       if (is.null(df()) || input$graphType != "box") return(NULL)
+       selectInput("grouping",
+                   "Grouping:",
+                   choices = var())
+       
+   })
+   
    output$xLabel <- renderUI({
-       if (is.null(df())) return(NULL)
+       if (is.null(df()) || is.null(input$graphType) || input$graphType == "box" ) return(NULL)
        textInput(inputId = "xLab",
                  label = "X axis label:",
                  value = input$x)
    })
    
    output$yLabel <- renderUI({
-       if (is.null(df())) return(NULL)
+       if (is.null(df()) || is.null(input$graphType) || input$graphType == "histo" ) return(NULL)
        textInput(inputId = "yLab",
                  label = "Y axis label:",
                  value = input$y)
    })
    
-   output$plot <- renderPlot  ({
+   output$plotTitle <- renderUI({
        if (is.null(df())) return(NULL)
-       p <- ggplot(df(),
-       aes(x = df()[,input$x], y = df()[,input$y])) + geom_point()
-       p + labs(x = input$xLab,
-                y = input$yLab)
+       textInput(inputId = "title",
+                 label = "Title")
    })
    
+   output$plot <- renderPlot  ({
+       if (is.null(df()) || is.null(input$graphType)) return(NULL)
+       if (input$graphType == "scatter") {
+           p <- ggplot(df(),
+                       aes(x = df()[,input$x], y = df()[,input$y])) + geom_point()
+           p + labs(x = input$xLab,
+                    y = input$yLab) + ggtitle(input$title)
+       } else if(input$graphType == "histo") {
+           p <- ggplot(df(),
+                       aes(x = df()[,input$x])) + geom_histogram()
+           p + labs(x = input$xLab,
+                    y = "Frequency") + ggtitle(input$title)
+       } else if (input$graphType == "box") {
+           p  <- ggplot(data=df(), aes(x= input$grouping, y=df()[,input$y]))
+           p + geom_boxplot(aes(fill=df()[,input$grouping])) + 
+               ylab(input$yLab) + xlab(input$grouping) + ggtitle(input$title)
+
+           
+       }
+       
+   })
    
+   # Waiting message
+   output$waitingPlot <- renderPrint({
+       if(!is.null(df())) {
+           tags$p("")
+       } else {
+           tags$p("Waiting for data to be uploaded.")
+       }
+   })
+   
+   ########################
+   #  Download data       #
+   ########################
+   
+   output$download_plot_PDF <- downloadHandler(
+       filename <- function() {
+           paste("Figure_ggplotGUI_", Sys.time(), ".pdf", sep = "")
+       },
+       content <- function(file) {
+           if (input$graphType == "scatter") {
+               p <- ggplot(df(),
+                           aes(x = df()[,input$x], y = df()[,input$y])) + geom_point()
+               p + labs(x = input$xLab,
+                        y = input$yLab) + ggtitle(input$title)
+           } else if(input$graphType == "histo") {
+               p <- ggplot(df(),
+                           aes(x = df()[,input$x])) + geom_histogram()
+               p + labs(x = input$xLab,
+                        y = "Frequency") + ggtitle(input$title)
+           } else if (input$graphType == "box") {
+               p  <- ggplot(data=df(), aes(x= input$grouping, y=df()[,input$y]))
+               p + geom_boxplot(aes(fill=df()[,input$grouping])) + 
+               ylab(input$yLab) + xlab(input$grouping) + ggtitle(input$title)
+               
+               
+           }
+           
+           ggsave(file, p)
+           
+       },
+       contentType = "application/pdf" # MIME type of the image
+       
+       
+   )
+   
+   
+
    
    
    }
