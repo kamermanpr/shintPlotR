@@ -238,7 +238,7 @@ server <- function(input, output) {
                  label = "Title")
    })
    
-   p <- reactive({
+   plotGraph <- reactive({
        if (input$graphType == "scatter") {
            p <- ggplot(df(),
                        aes(x = df()[[input$x]], y = df()[[input$y]])) + geom_point()
@@ -261,7 +261,7 @@ server <- function(input, output) {
    
    output$plot <- renderPlot  ({
        if (is.null(df()) || is.null(input$graphType)) return(NULL)
-       p()
+       plotGraph()
        
    })
    
@@ -283,7 +283,7 @@ server <- function(input, output) {
            paste("Figure_ggplotGUI_", Sys.time(), ".pdf", sep = "")
        },
        content <- function(file) {
-           p()
+           plotGraph()
            ggsave(file)
            
        }
