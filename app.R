@@ -238,8 +238,7 @@ server <- function(input, output) {
                  label = "Title")
    })
    
-   output$plot <- renderPlot  ({
-       if (is.null(df()) || is.null(input$graphType)) return(NULL)
+   plotGraph <- reactive({
        if (input$graphType == "scatter") {
            p <- ggplot(df(),
                        aes(x = df()[[input$x]], y = df()[[input$y]])) + geom_point()
@@ -256,9 +255,13 @@ server <- function(input, output) {
                             y = df()[[input$y]])) 
            p + geom_boxplot(aes(fill = factor(df()[[input$grouping]]))) + 
                ylab(input$yLab) + xlab(input$grouping) + ggtitle(input$title)
-
            
        }
+   })
+   
+   output$plot <- renderPlot  ({
+       if (is.null(df()) || is.null(input$graphType)) return(NULL)
+       plotGraph()
        
    })
    
@@ -280,30 +283,10 @@ server <- function(input, output) {
            paste("Figure_ggplotGUI_", Sys.time(), ".pdf", sep = "")
        },
        content <- function(file) {
-           if (input$graphType == "scatter") {
-               p <- ggplot(df(),
-                           aes(x = df()[,input$x], y = df()[,input$y])) + geom_point()
-               p + labs(x = input$xLab,
-                        y = input$yLab) + ggtitle(input$title)
-           } else if(input$graphType == "histo") {
-               p <- ggplot(df(),
-                           aes(x = df()[,input$x])) + geom_histogram()
-               p + labs(x = input$xLab,
-                        y = "Frequency") + ggtitle(input$title)
-           } else if (input$graphType == "box") {
-               p  <- ggplot(data=df(), aes(x= input$grouping, y=df()[,input$y]))
-               p + geom_boxplot(aes(fill=df()[,input$grouping])) + 
-               ylab(input$yLab) + xlab(input$grouping) + ggtitle(input$title)
-               
-               
-           }
+           plotGraph()
+           ggsave(file)
            
-           ggsave(file, p)
-           
-       },
-       contentType = "application/pdf" # MIME type of the image
-       
-       
+       }
    )
    
    
